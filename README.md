@@ -19,6 +19,8 @@ You can use the following diagram to guide you in wiring everything together:
 
 ![wiring guide](docs/wiring.png)
 
+It's worth noting that although the relay shield has 4 relays, we are only using 3 since the stack light we are using only has 3 lights (red, green, yellow). We do not use the fourth relay, but it can still be controlled in commands sent.
+
 ### Interacting
 
 Right now you can only communicate to the Arudino via serial communication. You can use the following to assist in this:
@@ -26,20 +28,22 @@ Right now you can only communicate to the Arudino via serial communication. You 
 - `screen /dev/cu.usbmodel3111 19200`
 - Using the Serial Monitor in the Arduino IDE or VS Code extension
 
-The Arudino software is set to run at 19200 buad. If you are seeing malformed/odd characters then make sure you have set the correct buad rate.
+The Arudino software is set to run at 19200 baud. If you are seeing malformed/odd characters then make sure you have set the correct baud rate.
 
 ### Commands
+
+Each command will return the final relay status, which can be parsed and handled as needed.
 
 |Command|Description|Example|
 |---|---|---|
 |`?`|Print commands available|`?`
 |`!`|Print relay status (on or off)|`!`|
-|`+ [relayNumber]`|Turn on a single relay or all relays|`+ 1`|
-|`- [relayNumber]`|Turn off a single relay or all relays|`- 1`|
-|`/`|Toggle a single relay or all relays|`/ 1`|
-|`. [relayNumber] [iterationCount] [onTime] [offTime] [dwellTime=0]`|Flash a specific relay|`. 1 3 500 500 500`|
-|`: [iterationCount] [onTime] [offTime] [dwellTime=0]`|Flash all relays at once|`: 3 500 500 500`|
-|`~ [iterationCount] [onTime] [offTime] [dwellTime=0]`|Flash each relay in order|`~ 3 500 500 500`|
+|`+ [relayNumber]`|Turn on a single relay or all relays (if not defined)|`+ 1`|
+|`- [relayNumber]`|Turn off a single relay or all relays (if not defined)|`- 1`|
+|`/`|Toggle a single relay or all relays (if not defined)|`/ 1`|
+|`. [relayNumber] [iterationCount=1] [onTime=500] [offTime=500] [dwellTime=0]`|Flash a specific relay|`. 1 3 500 500 500`|
+|`: [iterationCount=1] [onTime=500] [offTime=500] [dwellTime=0]`|Flash all relays at once|`: 3 500 500 500`|
+|`~ [iterationCount=1] [onTime=200] [offTime=0] [dwellTime=0]`|Flash each relay in order|`~ 3 500 500 500`|
 |`%`|Run demo mode|`%`|
 
 ## Contributing

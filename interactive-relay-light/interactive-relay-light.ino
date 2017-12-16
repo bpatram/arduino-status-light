@@ -10,20 +10,20 @@
 #define maxParams 6
 
 int charToInt(char c) {
-    // we assume ASCII
-    return c - '0';
+  // we assume ASCII
+  return c - '0';
 }
 
 Relay intToRelay(int value) {
   switch (value) {
-      case 1:
-      return Relay::ONE;
-      case 2:
-      return Relay::TWO;
-      case 3:
-      return Relay::THREE;
-      case 4:
-      return Relay::FOUR;
+    case 1:
+    return Relay::ONE;
+    case 2:
+    return Relay::TWO;
+    case 3:
+    return Relay::THREE;
+    case 4:
+    return Relay::FOUR;
   }
   return Relay::UNKNOWN;
 }
@@ -33,33 +33,33 @@ namespace Operation {
     ::Processor op(&Action::relayOn);
     op.run();
   }
-  
+
   void allOff() {
     ::Processor op(&Action::relayOff);
     op.run();
   }
-  
+
   void allToggle() {
     ::Processor op(&Action::relayToggle);
     op.run();
   }
-  
+
   void allStatus() {
     ::Processor op(&Action::printStatus);
     op.run();
   }
-  
-  void oneOn(Relay pin) {        
+
+  void oneOn(Relay pin) {
     ::Processor op(pin, &Action::relayOn);
     op.run();
   }
 
-  void oneOff(Relay pin) {    
+  void oneOff(Relay pin) {
     ::Processor op(pin, &Action::relayOff);
     op.run();
   }
 
-  void oneToggle(Relay pin) {    
+  void oneToggle(Relay pin) {
     ::Processor op(pin, &Action::relayToggle);
     op.run();
   }
@@ -88,7 +88,7 @@ namespace Operation {
   void allOff(Processor* proc) {
     Operation::allOff();
   }
-  
+
   void allOn(Processor* proc) {
     Operation::allOn();
   }
@@ -97,17 +97,17 @@ namespace Operation {
 
 void setup() {
   Serial.begin(19200);
-  
+
   Serial.println("-- Light Relay System --");
   Serial.print("Initializing... ");
-  
+
   pinMode(Relay::ONE, OUTPUT);
   pinMode(Relay::TWO, OUTPUT);
   pinMode(Relay::THREE, OUTPUT);
   pinMode(Relay::FOUR, OUTPUT);
 
   Serial.println("Ready!");
-  
+
   Operation::allStatus();
 }
 
@@ -151,7 +151,7 @@ char inputParameters[maxParams][maxParamLength];
 
 int processParameters(char* input, int size) {
 //  inputParameters[maxParams][maxParamLength] = '1';  // clear previous values
-  
+
   char* parameters = strtok(input, " "); // break string up into parts by space
   int i = 0;
   while (parameters != NULL) {
@@ -189,15 +189,15 @@ void processCommand(char input[][maxParamLength], int paramCount) {
   Serial.println("");
 
   switch (input[0][0]) {
-    
+
     case Command::STATUS:
       Operation::allStatus();
     break;
-    
+
     case Command::HELP:
       Operation::printHelp();
     break;
-    
+
     case Command::ON: { // command, relauy
       Relay target = intToRelay(charToInt(input[1][0]));
       if (target == Relay::UNKNOWN) {
@@ -208,7 +208,7 @@ void processCommand(char input[][maxParamLength], int paramCount) {
       }
       Operation::allStatus();
     } break;
-    
+
     case Command::OFF: { // command, relay
       Relay target = intToRelay(charToInt(input[1][0]));
       if (target == Relay::UNKNOWN) {
@@ -218,7 +218,7 @@ void processCommand(char input[][maxParamLength], int paramCount) {
       }
       Operation::allStatus();
     } break;
-    
+
     case Command::TOGGLE: { // command, relay
       Relay target = intToRelay(charToInt(input[1][0]));
       if (target == Relay::UNKNOWN) {
@@ -228,7 +228,7 @@ void processCommand(char input[][maxParamLength], int paramCount) {
       }
       Operation::allStatus();
     } break;
-    
+
     case Command::SEQUENCE: { // command, flashCount, onDur, offDur, pauseDur
       Operation::allOff(); // shut off all lights to start clean
 
@@ -236,17 +236,18 @@ void processCommand(char input[][maxParamLength], int paramCount) {
       int onDuration = paramCount > 2 ? atoi(input[2]) : Speed::FAST;
       int offDuration = paramCount > 3 ? atoi(input[3]) : Speed::INSTANT;
       int pauseDuration = paramCount > 4 ? atoi(input[4]) : Speed::INSTANT;
-      
+
       Operation::sequenceFlash(flashCount, onDuration, offDuration, pauseDuration);
       Operation::allStatus();
     } break;
-    
+
     case Command::ALL_FLASH: { // command, flashCount, onDur, offDur, pauseDur
       int flashCount = paramCount > 1 ? atoi(input[1]) : 1;
       int onDuration = paramCount > 2 ? atoi(input[2]) : Speed::MEDIUM;
       int offDuration = paramCount > 3 ? atoi(input[3]) : Speed::MEDIUM;
-      
-      Operation::allFlash(flashCount, onDuration, offDuration);
+      int pauseDuration = paramCount > 4 ? atoi(input[4]) : Speed::INSTANT;
+
+      Operation::allFlash(flashCount, onDuration, offDuration, pauseDuration);
       Operation::allStatus();
     } break;
 
@@ -266,7 +267,7 @@ void processCommand(char input[][maxParamLength], int paramCount) {
     case Command::DEMO:
       runDemo();
     break;
-  }   
+  }
 }
 
 

@@ -9,15 +9,15 @@ bool getRelayState(Relay pin);
 int relayToInt(Relay pin);
 
 namespace Action {
-    void relayOn(Relay pin, operationParameters params);
-    void relayOff(Relay pin, operationParameters params);
-    void relayToggle(Relay pin, operationParameters params);
-    void flash(Relay pin, operationParameters params);
-    void printStatus(Relay pin, operationParameters params);
-    void printHelp(Relay pin, operationParameters params);
+  void relayOn(Relay pin, operationParameters params);
+  void relayOff(Relay pin, operationParameters params);
+  void relayToggle(Relay pin, operationParameters params);
+  void flash(Relay pin, operationParameters params);
+  void printStatus(Relay pin, operationParameters params);
+  void printHelp(Relay pin, operationParameters params);
 
-    void allOff(Processor* proc);
-    void allOn(Processor* proc);
+  void allOff(Processor* proc);
+  void allOn(Processor* proc);
 }
 
 #endif

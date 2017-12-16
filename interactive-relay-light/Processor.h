@@ -11,6 +11,7 @@ struct operationParameters {
 };
 
 class Processor {
+
 public:
   typedef void (*eachAction_t)(Relay, operationParameters);
   typedef void (*iterationAction_t)(Processor*);

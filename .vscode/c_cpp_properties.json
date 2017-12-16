@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "~/Library/Arduino15/packages/arduino/hardware/avr/1.6.20/cores/arduino",
+                "~/Library/Arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include",
+                "~/Library/Arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.2/include",
+                "~/Library/Arduino15/packages/arduino/hardware/avr/1.6.20/variants/mega",
+                "${workspaceRoot}/interactive-relay-light"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": false,
+                "path": [
+                    "~/Library/Arduino15/packages/arduino/hardware/avr/1.6.20/cores/arduino",
+                    "~/Library/Arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include",
+                    "~/Library/Arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.2/include",
+                    "~/Library/Arduino15/packages/arduino/hardware/avr/1.6.20/variants/mega",
+                    "${workspaceRoot}/interactive-relay-light"
+                ]
+            },
+            "intelliSenseMode": "clang-x64",
+            "macFrameworkPath": [
+                "/System/Library/Frameworks",
+                "/Library/Frameworks"
+            ]
+        }
+    ],
+    "version": 3
+}

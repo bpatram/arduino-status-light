@@ -17,13 +17,13 @@ int charToInt(char c) {
 Relay intToRelay(int value) {
   switch (value) {
     case 1:
-    return Relay::ONE;
+      return Relay::ONE;
     case 2:
-    return Relay::TWO;
+      return Relay::TWO;
     case 3:
-    return Relay::THREE;
+      return Relay::THREE;
     case 4:
-    return Relay::FOUR;
+      return Relay::FOUR;
   }
   return Relay::UNKNOWN;
 }
@@ -150,30 +150,26 @@ char inputParameters[maxParams][maxParamLength];
 //int inputParameterLength[maxParams];
 
 int processParameters(char* input, int size) {
-//  inputParameters[maxParams][maxParamLength] = '1';  // clear previous values
+  // empty buffer (from previous run)
+  memset(inputParameters, '\0', sizeof(char) * maxParamLength * maxParams);
 
-  char* parameters = strtok(input, " "); // break string up into parts by space
+  char* parameters = strtok(input, " "); // break string up into parts by space, returns first part
+
   int i = 0;
-  while (parameters != NULL) {
-//    int length = strlen(parameters);
-//    if (length > maxParamLength) {
-//      Serial.println("Input parameter too large!");
-//      return -1;
-//    }
-    memset(inputParameters[i], 0, sizeof(char) * maxParamLength);
+  while (parameters != NULL && i < maxParams) {
     strncpy(inputParameters[i], parameters, maxParamLength); // copy char array into param array
-//    Serial.println(length);
-    Serial.println(inputParameters[i]);
-    i++;
+    Serial.println(parameters);
     parameters = strtok(NULL, " "); // passing NULL will make strtok use last string
+    i++;
   }
+
   return i; // returns param count
 }
 
 void loop() {
   if (Serial.available() > 0) {
-    Serial.readBytes(serialBuffer, bufferLength);
-    int paramCount = processParameters(serialBuffer, bufferLength);
+    Serial.readBytes(serialBuffer, bufferLength); // read data into serialBuffer
+    int paramCount = processParameters(serialBuffer, bufferLength); // setup params into inputParameters
     if (paramCount > 0) {
       processCommand(inputParameters, paramCount);
     }
@@ -181,12 +177,10 @@ void loop() {
 }
 
 void processCommand(char input[][maxParamLength], int paramCount) {
-  Serial.print("Received " + String(paramCount) + " parameters: ");
+  Serial.println("Received " + String(paramCount) + " parameters: ");
   for (int i = 0; i < paramCount; i++) {
-    Serial.print(input[i]);
-    Serial.print(" ");
+    Serial.println("[" + String(i) + "] = " + input[i]);
   }
-  Serial.println("");
 
   switch (input[0][0]) {
 

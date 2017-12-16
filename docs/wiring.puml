@@ -1,0 +1,95 @@
+@startuml
+title Wiring Guide/Component Diagram
+footer Rev. 2017-12-16
+
+skinparam componentStyle uml2
+skinparam linetype polyline
+skinparam shadowing false
+
+component PowerSupply [
+  Power Supply
+]
+
+component Controller [
+  Computer
+]
+
+component StackLight [
+  Stack Light
+]
+interface "Positive" as PowerPositive
+StackLight -[#F00]- PowerPositive
+interface "Negative" as PowerNegative
+StackLight -[#000]- PowerNegative
+interface Yellow #FF0
+StackLight -[#AA3]- Yellow
+interface Green #0F0
+StackLight -[#0F0]- Green
+interface Red #F00
+StackLight -[#F00]- Red
+' interface Grey
+' StackLight -[#666]- Grey
+
+component Arduino [
+  Arduino Mega
+]
+interface "Shield Pins" as ArduinoShieldPins
+Arduino .. ArduinoShieldPins
+interface "USB" as ArduinoUSB
+Arduino .. ArduinoUSB
+
+component Relay [
+  Relay Shield
+]
+' interface NC1
+' Relay -- NC1
+interface NO1
+Relay -- NO1
+interface COM1
+Relay -- COM1
+
+' interface NC2
+' Relay -- NC2
+interface NO2
+Relay -- NO2
+interface COM2
+Relay -- COM2
+
+' interface NC3
+' Relay -- NC3
+interface NO3
+Relay -- NO3
+interface COM3
+Relay -- COM3
+
+' interface NC4
+' Relay -- NC4
+' interface NO4
+' Relay -- NO4
+' interface COM4
+' Relay -- COM4
+
+' Lets wire this stuff up now!
+ArduinoShieldPins .. Relay
+Controller .. ArduinoUSB
+
+PowerPositive .[#F00]. PowerSupply
+PowerNegative .[#000]. PowerSupply
+
+Green .. NO1
+Red .. NO2
+Yellow .. NO3
+
+COM1 .. PowerNegative
+COM2 .. PowerNegative
+COM3 .. PowerNegative
+
+note right of Relay
+  You can connect the COM ports to
+  the grey wire instead to use
+  the flashing circuit on
+  the stack light
+end note
+
+
+@enduml

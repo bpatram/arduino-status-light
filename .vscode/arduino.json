@@ -1,5 +1,5 @@
 {
-    "sketch": "interactive-relay-light/interactive-relay-light.ino",
+    "sketch": "arduino-controller/arduino-controller.ino",
     "board": "arduino:avr:mega",
     "configuration": "cpu=atmega2560",
     "port": "/dev/cu.usbmodem3111",

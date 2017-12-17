@@ -27,7 +27,9 @@ ActionRunner::~ActionRunner() {
 void ActionRunner::run() {
   for (int i = 0; i < this->iterations; i++) {
     for(int j = 0; j < this->actionCount; j++) {
-      this->actions[j]->run();
+      if (this->actions[j] != NULL) {
+        this->actions[j]->run();
+      }
       if (j < this->actionCount && i < this->iterations && this->pauseTime > 0) {
         delay(this->pauseTime);
       }

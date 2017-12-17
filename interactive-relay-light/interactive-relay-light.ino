@@ -1,9 +1,8 @@
 #include <Arduino.h>
 
-#include "Processor.h"
-#include "Actions.h"
-#include "Operations.h"
 #include "constants.h"
+#include "Action.h"
+#include "ActionRunner.h"
 
 #define bufferLength 16
 #define maxParamLength 4
@@ -28,73 +27,6 @@ Relay intToRelay(int value) {
   return Relay::UNKNOWN;
 }
 
-namespace Operation {
-  void allOn() {
-    ::Processor op(&Action::relayOn);
-    op.run();
-  }
-
-  void allOff() {
-    ::Processor op(&Action::relayOff);
-    op.run();
-  }
-
-  void allToggle() {
-    ::Processor op(&Action::relayToggle);
-    op.run();
-  }
-
-  void allStatus() {
-    ::Processor op(&Action::printStatus);
-    op.run();
-  }
-
-  void oneOn(Relay pin) {
-    ::Processor op(pin, &Action::relayOn);
-    op.run();
-  }
-
-  void oneOff(Relay pin) {
-    ::Processor op(pin, &Action::relayOff);
-    op.run();
-  }
-
-  void oneToggle(Relay pin) {
-    ::Processor op(pin, &Action::relayToggle);
-    op.run();
-  }
-
-  void printHelp() {
-    ::Processor op(Relay::ONE, &Action::printHelp);
-    op.run();
-  }
-
-  void sequenceFlash(int iterations = 3, int onDuration = Speed::SLOW, int offDuration = Speed::SLOW, int pauseDuration = Speed::SLOW) {
-    operationParameters defaultParams = { onDuration, offDuration, pauseDuration };
-    ::Processor op(&Action::flash);
-    op.parameters = defaultParams;
-    op.loopCount = iterations;
-    op.run();
-  }
-
-  void allFlash(int iterations = 3, int onDuration = Speed::SLOW, int offDuration = Speed::SLOW, int pauseDuration = Speed::SLOW) {
-    operationParameters defaultParams = { onDuration, offDuration, pauseDuration };
-    ::Processor op(&Action::relayOn, &Action::allOff);
-    op.parameters = defaultParams;
-    op.loopCount = iterations;
-    op.run();
-  }
-
-  void allOff(Processor* proc) {
-    Operation::allOff();
-  }
-
-  void allOn(Processor* proc) {
-    Operation::allOn();
-  }
-
-}
-
 void setup() {
   Serial.begin(19200);
 
@@ -108,7 +40,8 @@ void setup() {
 
   Serial.println("Ready!");
 
-  Operation::allStatus();
+  ::StatusAction act(Relay::ALL);
+  act.run();
 }
 
 void runDemo() {
@@ -147,7 +80,6 @@ void runDemo() {
 
 char serialBuffer[bufferLength];
 char inputParameters[maxParams][maxParamLength];
-//int inputParameterLength[maxParams];
 
 int processParameters(char* input, int size) {
   // empty buffer (from previous run)
@@ -158,7 +90,6 @@ int processParameters(char* input, int size) {
   int i = 0;
   while (parameters != NULL && i < maxParams) {
     strncpy(inputParameters[i], parameters, maxParamLength); // copy char array into param array
-    Serial.println(parameters);
     parameters = strtok(NULL, " "); // passing NULL will make strtok use last string
     i++;
   }
@@ -170,100 +101,100 @@ void loop() {
   if (Serial.available() > 0) {
     Serial.readBytes(serialBuffer, bufferLength); // read data into serialBuffer
     int paramCount = processParameters(serialBuffer, bufferLength); // setup params into inputParameters
-    if (paramCount > 0) {
+    if (paramCount > 0) { // only process if a command was sent (which is the first string in the array)
       processCommand(inputParameters, paramCount);
     }
   }
 }
 
 void processCommand(char input[][maxParamLength], int paramCount) {
+  #if DEBUG_OUT == 1
   Serial.println("Received " + String(paramCount) + " parameters: ");
   for (int i = 0; i < paramCount; i++) {
     Serial.println("[" + String(i) + "] = " + input[i]);
   }
+  #endif
+
+  ActionRunner runner;
 
   switch (input[0][0]) {
 
-    case Command::STATUS:
-      Operation::allStatus();
-    break;
+    case Command::HELP: {
+      runner.setActions(new HelpAction());
+    } break;
 
-    case Command::HELP:
-      Operation::printHelp();
-    break;
-
-    case Command::ON: { // command, relauy
+    case Command::ON: { // command, relay
       Relay target = intToRelay(charToInt(input[1][0]));
-      if (target == Relay::UNKNOWN) {
-        Operation::allOn();
-      } else {
-        Serial.println(target);
-        Operation::oneOn(target);
-      }
-      Operation::allStatus();
+      runner.setActions(new OnAction(target));
     } break;
 
     case Command::OFF: { // command, relay
       Relay target = intToRelay(charToInt(input[1][0]));
-      if (target == Relay::UNKNOWN) {
-        Operation::allOff();
-      } else {
-        Operation::oneOff(target);
-      }
-      Operation::allStatus();
+      runner.setActions(new OffAction(target));
     } break;
 
     case Command::TOGGLE: { // command, relay
       Relay target = intToRelay(charToInt(input[1][0]));
-      if (target == Relay::UNKNOWN) {
-        Operation::allToggle();
-      } else {
-        Operation::oneToggle(target);
-      }
-      Operation::allStatus();
+      runner.setActions(new InvertAction(target));
     } break;
 
     case Command::SEQUENCE: { // command, flashCount, onDur, offDur, pauseDur
-      Operation::allOff(); // shut off all lights to start clean
-
       int flashCount = paramCount > 1 ? atoi(input[1]) : 1;
       int onDuration = paramCount > 2 ? atoi(input[2]) : Speed::FAST;
       int offDuration = paramCount > 3 ? atoi(input[3]) : Speed::INSTANT;
       int pauseDuration = paramCount > 4 ? atoi(input[4]) : Speed::INSTANT;
 
-      Operation::sequenceFlash(flashCount, onDuration, offDuration, pauseDuration);
-      Operation::allStatus();
+      runner.setActions(new Action*[16] {
+        new InvertAction(Relay::ONE),
+        new WaitAction(onDuration),
+        new InvertAction(Relay::ONE),
+        new WaitAction(offDuration),
+
+        new InvertAction(Relay::TWO),
+        new WaitAction(onDuration),
+        new InvertAction(Relay::TWO),
+        new WaitAction(offDuration),
+
+        new InvertAction(Relay::THREE),
+        new WaitAction(onDuration),
+        new InvertAction(Relay::THREE),
+        new WaitAction(offDuration),
+
+        new InvertAction(Relay::FOUR),
+        new WaitAction(onDuration),
+        new InvertAction(Relay::FOUR),
+        new WaitAction(offDuration)
+      }, 16);
+
+      runner.iterations = flashCount;
+      runner.pauseTime = pauseDuration;
     } break;
 
-    case Command::ALL_FLASH: { // command, flashCount, onDur, offDur, pauseDur
-      int flashCount = paramCount > 1 ? atoi(input[1]) : 1;
-      int onDuration = paramCount > 2 ? atoi(input[2]) : Speed::MEDIUM;
-      int offDuration = paramCount > 3 ? atoi(input[3]) : Speed::MEDIUM;
-      int pauseDuration = paramCount > 4 ? atoi(input[4]) : Speed::INSTANT;
-
-      Operation::allFlash(flashCount, onDuration, offDuration, pauseDuration);
-      Operation::allStatus();
-    } break;
-
-    case Command::SINGLE_FLASH: { // command, relay, flashCount, onDur, offDur, pauseDur
-      Relay target = paramCount > 1 ? intToRelay(charToInt(input[1][0])) : Relay::UNKNOWN;
+    case Command::FLASH: { // command, relay, flashCount, onDur, offDur, pauseDur
+      Relay target = paramCount > 1 ? intToRelay(charToInt(input[1][0])) : Relay::ALL;
       int flashCount = paramCount > 2 ? atoi(input[2]) : 1;
       int onDuration = paramCount > 3 ? atoi(input[3]) : Speed::MEDIUM;
       int offDuration = paramCount > 4 ? atoi(input[4]) : Speed::MEDIUM;
       int pauseDuration = paramCount > 5 ? atoi(input[5]) : Speed::INSTANT;
 
-      if (target != Relay::UNKNOWN) {
-        // loopFlash(target, flashCount, onDuration, offDuration, pauseDuration);
-      }
-      Operation::allStatus();
+      runner.setActions(new Action*[4] {
+        new InvertAction(target),
+        new WaitAction(onDuration),
+        new InvertAction(target),
+        new WaitAction(offDuration)
+      }, 4);
+
+      runner.iterations = flashCount;
+      runner.pauseTime = pauseDuration;
     } break;
 
-    case Command::DEMO:
+    case Command::DEMO: {
       runDemo();
-    break;
+    } break;
   }
+
+  runner.run();
+
+  ::StatusAction act(Relay::ALL);
+  act.run();
 }
-
-
-
-

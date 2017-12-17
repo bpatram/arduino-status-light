@@ -32,7 +32,7 @@ The Arudino software is set to run at 19200 baud. If you are seeing malformed/od
 
 ### Commands
 
-Each command will return the final relay status, which can be parsed and handled as needed.
+Each command will return the final relay status, which can be parsed as needed.
 
 |Command|Description|Example|
 |---|---|---|
@@ -41,8 +41,7 @@ Each command will return the final relay status, which can be parsed and handled
 |`+ [relayNumber]`|Turn on a single relay or all relays (if not defined)|`+ 1`|
 |`- [relayNumber]`|Turn off a single relay or all relays (if not defined)|`- 1`|
 |`/`|Toggle a single relay or all relays (if not defined)|`/ 1`|
-|`. [relayNumber] [iterationCount=1] [onTime=500] [offTime=500] [dwellTime=0]`|Flash a specific relay|`. 1 3 500 500 500`|
-|`: [iterationCount=1] [onTime=500] [offTime=500] [dwellTime=0]`|Flash all relays at once|`: 3 500 500 500`|
+|`: [relayNumber] [iterationCount=1] [onTime=500] [offTime=500] [dwellTime=0]`|Flash one or all relays at once|`: ? 3 500 500 500`|
 |`~ [iterationCount=1] [onTime=200] [offTime=0] [dwellTime=0]`|Flash each relay in order|`~ 3 500 500 500`|
 |`%`|Run demo mode|`%`|
 

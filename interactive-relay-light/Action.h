@@ -2,14 +2,13 @@
 #define action_h
 
 #include "constants.h"
+#include "Runnable.h"
 
-class Action {
+class Action : public Runnable {
 public:
   Relay target;
 
   Action(Relay);
-
-  virtual void run();
 
   static void relayOn(Relay);
   static void relayOff(Relay);

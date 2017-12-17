@@ -5,8 +5,6 @@ Action::Action(Relay pin) {
   this->target = pin;
 }
 
-void Action::run() {}
-
 void Action::relayOff(Relay pin) {
   digitalWrite(pin, LOW);
 }

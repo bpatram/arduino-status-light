@@ -8,14 +8,13 @@ ActionRunner::ActionRunner() {
   this->pauseTime = 0;
 }
 
-void ActionRunner::setActions(Action** actions, int size) {
+void ActionRunner::setActions(Runnable** actions, int size) {
   this->actions = actions;
   this->actionCount = size;
 }
 
-void ActionRunner::setActions(Action* action) {
-  this->actions = new Action*[1] { action };
-  this->actionCount = 1;
+void ActionRunner::setActions(Runnable* action) {
+  this->setActions(new Action*[1] { action }, 1);
 }
 
 ActionRunner::~ActionRunner() {

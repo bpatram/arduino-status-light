@@ -1,16 +1,43 @@
 syntax = "proto2";
 
+enum Relay {
+  ALL = 0;
+  ONE = 1;
+  TWO = 2;
+  THREE = 3;
+  FOUR = 4;
+}
+
 message StatusResponse {
-    required bool relayOne = 1;
-    required bool relayTwo = 2;
-    required bool relayThree = 3;
-    required bool relayFour = 4;
+  enum State {
+    OFF = 0;
+    ON = 1;
+  }
+
+  message Status {
+    required Relay relay = 1;
+    required State state = 2;
+  }
+
+  repeated Status status = 1;
 }
 
-message OffRequest {
-    optional string relay = 1 [default = "-1"];
-}
+message CommandRequest {
+  enum Command {
+    STATUS = 0;
+    HELP = 1;
+    ON = 2;
+    OFF = 3;
+    INVERT = 4;
+    SEQUENCE = 5;
+    FLASH = 6;
+    DEMO = 7;
+  }
 
-message OnRequest {
-    optional string relay = 1 [default = "-1"];
+  required Command command = 1;
+  optional Relay relay = 2 [default = ALL];
+  optional int32 iterations = 3 [default = 1];
+  optional int32 onMillis = 4 [default = 500];
+  optional int32 offMillis = 5 [default = 500];
+  optional int32 pauseMillis = 6 [default = 0];
 }

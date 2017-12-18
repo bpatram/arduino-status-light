@@ -1,7 +1,7 @@
 #ifndef action_h
 #define action_h
 
-#include "constants.h"
+#include "commands.pb.h"
 #include "Runnable.h"
 
 class Action : public Runnable {
@@ -14,7 +14,7 @@ public:
   static void relayOff(Relay);
   static void relayInvert(Relay);
   static bool getRelayState(Relay);
-  static int getRelayIndex(Relay);
+  static int getRelayPin(Relay);
 };
 
 class OnAction : public Action {
@@ -45,14 +45,14 @@ public:
 
 class HelpAction : public Action {
 public:
-  HelpAction() : Action(Relay::UNKNOWN) {}
+  HelpAction() : Action(Relay::Relay_ALL) {}
   virtual void run();
 };
 
 class WaitAction : public Action {
 public:
   int pauseTime;
-  WaitAction(int pauseTime) : Action(Relay::UNKNOWN) {
+  WaitAction(int pauseTime) : Action(Relay::Relay_ALL) {
     this->pauseTime = pauseTime;
   }
   virtual void run();

@@ -24,15 +24,15 @@ int charToInt(char c) {
 Relay intToRelay(int value) {
   switch (value) {
     case 1:
-      return Relay::ONE;
+      return Relay::Relay_ONE;
     case 2:
-      return Relay::TWO;
+      return Relay::Relay_TWO;
     case 3:
-      return Relay::THREE;
+      return Relay::Relay_THREE;
     case 4:
-      return Relay::FOUR;
+      return Relay::Relay_FOUR;
   }
-  return Relay::UNKNOWN;
+  return Relay::Relay_ALL;
 }
 
 void setup() {
@@ -41,14 +41,14 @@ void setup() {
   Serial.println("-- Light Relay System --");
   Serial.print("Initializing... ");
 
-  pinMode(Relay::ONE, OUTPUT);
-  pinMode(Relay::TWO, OUTPUT);
-  pinMode(Relay::THREE, OUTPUT);
-  pinMode(Relay::FOUR, OUTPUT);
+  pinMode(Action::getRelayPin(Relay::Relay_ONE), OUTPUT);
+  pinMode(Action::getRelayPin(Relay::Relay_TWO), OUTPUT);
+  pinMode(Action::getRelayPin(Relay::Relay_THREE), OUTPUT);
+  pinMode(Action::getRelayPin(Relay::Relay_FOUR), OUTPUT);
 
   Serial.println("Ready!");
 
-  ::StatusAction act(Relay::ALL);
+  ::StatusAction act(Relay::Relay_ALL);
   act.run();
 }
 
@@ -122,7 +122,7 @@ void processCommand(char input[][maxParamLength], int paramCount) {
     } break;
 
     case Command::FLASH: { // command, relay, flashCount, onDur, offDur, pauseDur
-      Relay target = paramCount > 1 ? intToRelay(charToInt(input[1][0])) : Relay::ALL;
+      Relay target = paramCount > 1 ? intToRelay(charToInt(input[1][0])) : Relay::Relay_ALL;
       int flashCount = paramCount > 2 ? atoi(input[2]) : 1;
       int onDuration = paramCount > 3 ? atoi(input[3]) : Speed::MEDIUM;
       int offDuration = paramCount > 4 ? atoi(input[4]) : Speed::MEDIUM;
@@ -139,7 +139,7 @@ void processCommand(char input[][maxParamLength], int paramCount) {
 
   runner.run();
 
-  ::StatusAction act(Relay::ALL);
+  ::StatusAction act(Relay::Relay_ALL);
   act.run();
 }
 
@@ -157,24 +157,24 @@ void setupFlashRunner(ActionRunner* runner, Relay target, int flashCount, int on
 
 void setupSequenceRunner(ActionRunner* runner, int flashCount, int onDuration, int offDuration, int pauseDuration) {
   runner->setActions(new Action*[16] {
-    new InvertAction(Relay::ONE),
+    new InvertAction(Relay::Relay_ONE),
     new WaitAction(onDuration),
-    new InvertAction(Relay::ONE),
+    new InvertAction(Relay::Relay_ONE),
     new WaitAction(offDuration),
 
-    new InvertAction(Relay::TWO),
+    new InvertAction(Relay::Relay_TWO),
     new WaitAction(onDuration),
-    new InvertAction(Relay::TWO),
+    new InvertAction(Relay::Relay_TWO),
     new WaitAction(offDuration),
 
-    new InvertAction(Relay::THREE),
+    new InvertAction(Relay::Relay_THREE),
     new WaitAction(onDuration),
-    new InvertAction(Relay::THREE),
+    new InvertAction(Relay::Relay_THREE),
     new WaitAction(offDuration),
 
-    new InvertAction(Relay::FOUR),
+    new InvertAction(Relay::Relay_FOUR),
     new WaitAction(onDuration),
-    new InvertAction(Relay::FOUR),
+    new InvertAction(Relay::Relay_FOUR),
     new WaitAction(offDuration)
   }, 16);
 
@@ -184,42 +184,42 @@ void setupSequenceRunner(ActionRunner* runner, int flashCount, int onDuration, i
 
 void setupDemoRunner(ActionRunner* runner) {
   ActionRunner* oneFlashRunner = new ActionRunner();
-  setupFlashRunner(oneFlashRunner, Relay::ONE, 3, Speed::FAST, Speed::FAST, Speed::INSTANT);
+  setupFlashRunner(oneFlashRunner, Relay::Relay_ONE, 3, Speed::FAST, Speed::FAST, Speed::INSTANT);
 
   ActionRunner* twoFlashRunner = new ActionRunner();
-  setupFlashRunner(twoFlashRunner, Relay::TWO, 3, Speed::FAST, Speed::FAST, Speed::INSTANT);
+  setupFlashRunner(twoFlashRunner, Relay::Relay_TWO, 3, Speed::FAST, Speed::FAST, Speed::INSTANT);
 
   ActionRunner* threeFlashRunner = new ActionRunner();
-  setupFlashRunner(threeFlashRunner, Relay::THREE, 3, Speed::FAST, Speed::FAST, Speed::INSTANT);
+  setupFlashRunner(threeFlashRunner, Relay::Relay_THREE, 3, Speed::FAST, Speed::FAST, Speed::INSTANT);
 
   ActionRunner* fourFlashRunner = new ActionRunner();
-  setupFlashRunner(fourFlashRunner, Relay::FOUR, 3, Speed::FAST, Speed::FAST, Speed::INSTANT);
+  setupFlashRunner(fourFlashRunner, Relay::Relay_FOUR, 3, Speed::FAST, Speed::FAST, Speed::INSTANT);
 
   ActionRunner* sequenceRunner = new ActionRunner();
   setupSequenceRunner(sequenceRunner, 3, Speed::FAST, Speed::INSTANT, Speed::INSTANT);
 
   ActionRunner* allFlashRunner = new ActionRunner();
-  setupFlashRunner(allFlashRunner, Relay::ALL, 3, Speed::MEDIUM, Speed::MEDIUM, Speed::INSTANT);
+  setupFlashRunner(allFlashRunner, Relay::Relay_ALL, 3, Speed::MEDIUM, Speed::MEDIUM, Speed::INSTANT);
 
   ActionRunner* allFlashRunner1 = new ActionRunner();
-  setupFlashRunner(allFlashRunner1, Relay::ONE, 5, Speed::FAST, Speed::FAST, Speed::INSTANT);
+  setupFlashRunner(allFlashRunner1, Relay::Relay_ONE, 5, Speed::FAST, Speed::FAST, Speed::INSTANT);
 
   ActionRunner* allFlashRunner2 = new ActionRunner();
-  setupFlashRunner(allFlashRunner2, Relay::TWO, 10, Speed::BLAZING, Speed::BLAZING, Speed::INSTANT);
+  setupFlashRunner(allFlashRunner2, Relay::Relay_TWO, 10, Speed::BLAZING, Speed::BLAZING, Speed::INSTANT);
 
   ActionRunner* allFlashRunner3 = new ActionRunner();
-  setupFlashRunner(allFlashRunner3, Relay::THREE, 20, Speed::INSANE, Speed::INSANE, Speed::INSTANT);
+  setupFlashRunner(allFlashRunner3, Relay::Relay_THREE, 20, Speed::INSANE, Speed::INSANE, Speed::INSTANT);
 
   runner->setActions(new Runnable*[24] {
     // []
-    new OffAction(Relay::ALL), // reset all light states
+    new OffAction(Relay::Relay_ALL), // reset all light states
 
     // [1,2,3,4] -200-> [] x3
     allFlashRunner,
 
     new WaitAction(1000),
 
-    new OffAction(Relay::ALL),
+    new OffAction(Relay::Relay_ALL),
     oneFlashRunner,
     twoFlashRunner,
     threeFlashRunner,
@@ -228,15 +228,15 @@ void setupDemoRunner(ActionRunner* runner) {
     new WaitAction(1000),
 
     // [1,3] -200-> [2,4] -200> [1,3] -200-> [2,4]
-    new OnAction(Relay::ONE),
-    new OnAction(Relay::THREE),
+    new OnAction(Relay::Relay_ONE),
+    new OnAction(Relay::Relay_THREE),
     new WaitAction(200),
-    new InvertAction(Relay::ALL),
+    new InvertAction(Relay::Relay_ALL),
     new WaitAction(200),
-    new InvertAction(Relay::ALL),
+    new InvertAction(Relay::Relay_ALL),
     new WaitAction(200),
-    new InvertAction(Relay::ALL),
-    new OffAction(Relay::ALL),
+    new InvertAction(Relay::Relay_ALL),
+    new OffAction(Relay::Relay_ALL),
 
     new WaitAction(1000),
 

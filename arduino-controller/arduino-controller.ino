@@ -1,5 +1,12 @@
+#include <pb_arduino_decode.h>
+#include <pb_arduino_encode.h>
+#include <pb_decode.h>
+#include <pb_encode.h>
+#include <pb.h>
+
 #include <Arduino.h>
 
+#include "commands.pb.h"
 #include "constants.h"
 #include "Action.h"
 #include "ActionRunner.h"

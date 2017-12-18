@@ -1,0 +1,16 @@
+syntax = "proto2";
+
+message StatusResponse {
+    required bool relayOne = 1;
+    required bool relayTwo = 2;
+    required bool relayThree = 3;
+    required bool relayFour = 4;
+}
+
+message OffRequest {
+    optional string relay = 1 [default = "-1"];
+}
+
+message OnRequest {
+    optional string relay = 1 [default = "-1"];
+}

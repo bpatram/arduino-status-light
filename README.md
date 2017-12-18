@@ -55,6 +55,27 @@ It's much easier to use VS Code or another text editor/IDE instead of the very b
 1. Add the [Arduino extension](https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.vscode-arduino) to VSCode (`vsciot-vscode.vscode-arduino`)
 1. Add the [EditorConfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) to VS Code (`EditorConfig.EditorConfig`)
 
+### Setup Protobuf
+
+**This is only needed if you are looking to re-compile the Protobuf messages**. This repo includes the current header files representing the current Protobuf messages.
+
+1. Install Python `brew install python`
+1. Install Pip `sudo easy_install pip`
+1. Install Protobuf `pip install protobuf --user`
+    - The `--user` flag is added to avoid running into macOS SIP protection issues in some cases.
+    - _NOTE: `--user` will ensure the library isinstalled for the current user and not for the entire system._
+1. Install the NanoPB Arduino bridge library
+    1. Download [the NanoPB Arduino repo](https://github.com/amorellgarcia/arduino-nanopb) as a .zip file
+    1. Extract the .zip file contents to `~/Documents/Arduino/libraries/arduino-nanopb`
+        - _Alternatively you can do this within Arudino IDE via the Sketch > Include Library > Add .ZIP Library... menu item_
+
+### Compiling Protobuf Messages
+
+1. Make changes to the `commands.proto` file as needed
+1. Navigate to the `arduino-controller/proto` directory
+1. Run `./compile_pb.sh`
+    - This will ouput new header files to be consumed. Recompiling the Arduino project will be needed after to utilize the changes made
+
 ## Roadmap
 
 - [x] Arudino to interface Relay shield to serial communications

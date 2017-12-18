@@ -60,21 +60,25 @@ It's much easier to use VS Code or another text editor/IDE instead of the very b
 **This is only needed if you are looking to re-compile the Protobuf messages**. This repo includes the current header files representing the current Protobuf messages.
 
 1. Install Python `brew install python`
-1. Install Pip `sudo easy_install pip`
-1. Install Protobuf `pip install protobuf --user`
-    - The `--user` flag is added to avoid running into macOS SIP protection issues in some cases.
-    - _NOTE: `--user` will ensure the library isinstalled for the current user and not for the entire system._
-1. Install the NanoPB Arduino bridge library
-    1. Download [the NanoPB Arduino repo](https://github.com/amorellgarcia/arduino-nanopb) as a .zip file
-    1. Extract the .zip file contents to `~/Documents/Arduino/libraries/arduino-nanopb`
+1. Install Protobuf `brew install protobuf`
+    - If you see a message about not being able to import the module run the suggested command: `echo 'import site; site.addsitedir("/usr/local/lib/python2.7/site-packages")' >> ~/Library/Python/2.7/lib/python/site-packages/homebrew.pth`
+1. Install the NanoPB library
+    1. Download [the NanoPB repo](https://github.com/nanopb/nanopb) as a .zip file
+    1. Extract the .zip file contents to `~/Documents/Arduino/libraries/nanopb-master`
         - _Alternatively you can do this within Arudino IDE via the Sketch > Include Library > Add .ZIP Library... menu item_
+    1. Run `make` in the `generator/proto` directory
+1. Install the NanoPB Arduino bridge library
+    1. Download [the NanoPB-Arduino repo](https://github.com/eric-wieser/nanopb-arduino) as a .zip file
+    1. Extract the .zip file contents to `~/Documents/Arduino/libraries/nanopb-arduino-master`
+        - _Alternatively you can do this within Arudino IDE via the Sketch > Include Library > Add .ZIP Library... menu item_
+    1. Within the `nanopb-arduino-master` directory, move the contents of the `src` folder up a level
 
 ### Compiling Protobuf Messages
 
 1. Make changes to the `commands.proto` file as needed
 1. Navigate to the `arduino-controller/proto` directory
-1. Run `./compile_pb.sh`
-    - This will ouput new header files to be consumed. Recompiling the Arduino project will be needed after to utilize the changes made
+1. Run `./compile_pb.sh` to output header files
+    - NOTE: Recompiling the entire Arduino project will be needed after to utilize the changes made
 
 ## Roadmap
 

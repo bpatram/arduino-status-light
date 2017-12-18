@@ -19,7 +19,12 @@ message StatusResponse {
     required State state = 2;
   }
 
-  repeated Status status = 1;
+  required Status relayOne = 1;
+  required Status relayTwo = 2;
+  required Status relayThree = 3;
+  required Status relayFour = 4;
+
+  // repeated Status status = 1;
 }
 
 message CommandRequest {

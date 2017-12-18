@@ -35,11 +35,17 @@ Relay intToRelay(int value) {
   return Relay::Relay_ALL;
 }
 
+pb_istream_t pb_in;
+pb_ostream_t pb_out;
+
 void setup() {
   Serial.begin(19200);
 
   Serial.println("-- Light Relay System --");
   Serial.print("Initializing... ");
+
+  pb_out = as_pb_ostream(Serial);
+  pb_in = as_pb_istream(Serial);
 
   pinMode(Action::getRelayPin(Relay::Relay_ONE), OUTPUT);
   pinMode(Action::getRelayPin(Relay::Relay_TWO), OUTPUT);
@@ -48,7 +54,7 @@ void setup() {
 
   Serial.println("Ready!");
 
-  ::StatusAction act(Relay::Relay_ALL);
+  ::StatusAction act(&pb_out);
   act.run();
 }
 
@@ -89,16 +95,7 @@ void processCommand(char input[][maxParamLength], int paramCount) {
   }
   #endif
 
-  ActionRunner runner;
-
   switch (input[0][0]) {
-
-
-    case Command::HELP: {
-      CommandRequest cmd = CommandRequest_init_zero;
-      cmd.command = CommandRequest_Command::CommandRequest_Command_HELP;
-      runCommand(&cmd);
-    } break;
 
     case Command::ON: { // command, relay
       Relay target = intToRelay(charToInt(input[1][0]));
@@ -165,21 +162,12 @@ void processCommand(char input[][maxParamLength], int paramCount) {
       runCommand(&cmd);
     } break;
   }
-
-  runner.run();
-
-  ::StatusAction act(Relay::Relay_ALL);
-  act.run();
 }
 
 void runCommand(CommandRequest* command) {
   ActionRunner runner;
 
   switch (command->command) {
-
-    case CommandRequest_Command::CommandRequest_Command_HELP: {
-      runner.setActions(new HelpAction());
-    } break;
 
     case CommandRequest_Command::CommandRequest_Command_ON: {
       runner.setActions(new OnAction(command->relay));
@@ -207,6 +195,9 @@ void runCommand(CommandRequest* command) {
   }
 
   runner.run();
+
+  ::StatusAction act(&pb_out);
+  act.run();
 }
 
 void setupFlashRunner(ActionRunner* runner, Relay target, int flashCount, int onDuration, int offDuration, int pauseDuration) {

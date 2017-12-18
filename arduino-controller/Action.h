@@ -4,6 +4,12 @@
 #include "commands.pb.h"
 #include "Runnable.h"
 
+#include <pb_arduino.h>
+#include <pb_common.h>
+#include <pb_decode.h>
+#include <pb_encode.h>
+#include <pb.h>
+
 class Action : public Runnable {
 public:
   Relay target;
@@ -13,7 +19,7 @@ public:
   static void relayOn(Relay);
   static void relayOff(Relay);
   static void relayInvert(Relay);
-  static bool getRelayState(Relay);
+  static StatusResponse_State getRelayState(Relay);
   static int getRelayPin(Relay);
 };
 
@@ -37,15 +43,10 @@ public:
 
 class StatusAction : public Action {
 public:
-  StatusAction(Relay r) : Action(r) {}
-  virtual void run();
-
-  void printStatus(Relay);
-};
-
-class HelpAction : public Action {
-public:
-  HelpAction() : Action(Relay::Relay_ALL) {}
+  pb_ostream_t* stream;
+  StatusAction(pb_ostream_t* stream) : Action(Relay::Relay_ALL) {
+    this->stream = stream;
+  }
   virtual void run();
 };
 

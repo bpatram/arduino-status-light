@@ -93,23 +93,38 @@ void processCommand(char input[][maxParamLength], int paramCount) {
 
   switch (input[0][0]) {
 
+
     case Command::HELP: {
-      runner.setActions(new HelpAction());
+      CommandRequest cmd = CommandRequest_init_zero;
+      cmd.command = CommandRequest_Command::CommandRequest_Command_HELP;
+      runCommand(&cmd);
     } break;
 
     case Command::ON: { // command, relay
       Relay target = intToRelay(charToInt(input[1][0]));
-      runner.setActions(new OnAction(target));
+
+      CommandRequest cmd = CommandRequest_init_zero;
+      cmd.command = CommandRequest_Command::CommandRequest_Command_ON;
+      cmd.relay = target;
+      runCommand(&cmd);
     } break;
 
     case Command::OFF: { // command, relay
       Relay target = intToRelay(charToInt(input[1][0]));
-      runner.setActions(new OffAction(target));
+
+      CommandRequest cmd = CommandRequest_init_zero;
+      cmd.command = CommandRequest_Command::CommandRequest_Command_OFF;
+      cmd.relay = target;
+      runCommand(&cmd);
     } break;
 
     case Command::TOGGLE: { // command, relay
       Relay target = intToRelay(charToInt(input[1][0]));
-      runner.setActions(new InvertAction(target));
+
+      CommandRequest cmd = CommandRequest_init_zero;
+      cmd.command = CommandRequest_Command::CommandRequest_Command_INVERT;
+      cmd.relay = target;
+      runCommand(&cmd);
     } break;
 
     case Command::SEQUENCE: { // command, flashCount, onDur, offDur, pauseDur
@@ -118,7 +133,13 @@ void processCommand(char input[][maxParamLength], int paramCount) {
       int offDuration = paramCount > 3 ? atoi(input[3]) : Speed::INSTANT;
       int pauseDuration = paramCount > 4 ? atoi(input[4]) : Speed::INSTANT;
 
-      setupSequenceRunner(&runner, flashCount, onDuration, offDuration, pauseDuration);
+      CommandRequest cmd = CommandRequest_init_zero;
+      cmd.command = CommandRequest_Command::CommandRequest_Command_SEQUENCE;
+      cmd.iterations = flashCount;
+      cmd.onMillis = onDuration;
+      cmd.offMillis = offDuration;
+      cmd.pauseMillis = pauseDuration;
+      runCommand(&cmd);
     } break;
 
     case Command::FLASH: { // command, relay, flashCount, onDur, offDur, pauseDur
@@ -128,12 +149,20 @@ void processCommand(char input[][maxParamLength], int paramCount) {
       int offDuration = paramCount > 4 ? atoi(input[4]) : Speed::MEDIUM;
       int pauseDuration = paramCount > 5 ? atoi(input[5]) : Speed::INSTANT;
 
-      setupFlashRunner(&runner, target, flashCount, onDuration, offDuration, pauseDuration);
+      CommandRequest cmd = CommandRequest_init_zero;
+      cmd.command = CommandRequest_Command::CommandRequest_Command_FLASH;
+      cmd.relay = target;
+      cmd.iterations = flashCount;
+      cmd.onMillis = onDuration;
+      cmd.offMillis = offDuration;
+      cmd.pauseMillis = pauseDuration;
+      runCommand(&cmd);
     } break;
 
     case Command::DEMO: {
-
-      setupDemoRunner(&runner);
+      CommandRequest cmd = CommandRequest_init_zero;
+      cmd.command = CommandRequest_Command::CommandRequest_Command_DEMO;
+      runCommand(&cmd);
     } break;
   }
 
@@ -141,6 +170,43 @@ void processCommand(char input[][maxParamLength], int paramCount) {
 
   ::StatusAction act(Relay::Relay_ALL);
   act.run();
+}
+
+void runCommand(CommandRequest* command) {
+  ActionRunner runner;
+
+  switch (command->command) {
+
+    case CommandRequest_Command::CommandRequest_Command_HELP: {
+      runner.setActions(new HelpAction());
+    } break;
+
+    case CommandRequest_Command::CommandRequest_Command_ON: {
+      runner.setActions(new OnAction(command->relay));
+    } break;
+
+    case CommandRequest_Command::CommandRequest_Command_OFF: {
+      runner.setActions(new OffAction(command->relay));
+    } break;
+
+    case CommandRequest_Command::CommandRequest_Command_INVERT: {
+      runner.setActions(new InvertAction(command->relay));
+    } break;
+
+    case CommandRequest_Command::CommandRequest_Command_SEQUENCE: {
+      setupSequenceRunner(&runner, command->iterations, command->onMillis, command->offMillis, command->pauseMillis);
+    } break;
+
+    case CommandRequest_Command::CommandRequest_Command_FLASH: {
+      setupFlashRunner(&runner, command->relay, command->iterations, command->onMillis, command->offMillis, command->pauseMillis);
+    } break;
+
+    case CommandRequest_Command::CommandRequest_Command_DEMO: {
+      setupDemoRunner(&runner);
+    } break;
+  }
+
+  runner.run();
 }
 
 void setupFlashRunner(ActionRunner* runner, Relay target, int flashCount, int onDuration, int offDuration, int pauseDuration) {

@@ -1,12 +1,38 @@
+//---------------------------------------------------------------
+//-- Arduino Mega Stack Light Enclosure (Brandon Patram)
+//-- (c) December, 2017
+//---------------------------------------------------------------
+//-- See repo license for licensing information
+//---------------------------------------------------------------
+
 // units are all in mm (millimeters)
 
 $fs = .1; // increase resolution to every .5 units
 $fa = 8;
 
+//--------------------------------------
+//-- Build 2D point array of an arc
+//-- INPUTS:
+//--   start: starting angle
+//--   end: ending angle
+//--   r: radius of circle to build arc from
+//--   offset: 2D coords to offset all points by. Default: [0,0]
+//--------------------------------------
 function arc_points(start, end, r, offset = [0, 0]) = [ 
-    for (a = [start : (start < end ? $fa : $fa * -1) : end]) [((r * cos(a)) + offset[0]), ((r * sin(a)) + offset[1]) ] 
+    for (a = [start : (start < end ? $fa : $fa * -1) : end]) [
+        ((r * cos(a)) + offset[0]), ((r * sin(a)) + offset[1]) 
+    ] 
 ];
-    
+
+//--------------------------------------
+//-- Build 2D polygon of an arc
+//-- INPUTS:
+//--   start: starting angle
+//--   end: ending angle
+//--   r: radius of circle to build arc from
+//--   offset: 2D coords to offset all points by. Default: [0,0]
+//--   closed: Create a wedge shape or simply an arc. Default: false
+//--------------------------------------
 module arc(start = 0, end = 90, r = 1, closed = false, offset = [0, 0]) {
     p = arc_points(start, end, r, offset);
     if (closed) {
@@ -32,12 +58,34 @@ module rounded_rect(r, w, h, depth = 1) {
     }
 }
 
-module radial_cloner(clones = 1, radius = 1) {
+//--------------------------------------
+//-- Duplicate child object(s) in a circle
+//-- INPUTS:
+//--   clones: Number of objects to be ditributed around the circle. Default: 1
+//--   r: radius of circle to build arc from. Default: 1
+//--------------------------------------
+module radial_cloner(clones = 1, r = 1) {
     function calculate_angle(index, length) = 360/length * index;
     
     for (i = [0 : 1 : clones]) {
-        translate([cos(calculate_angle(i, clones)) * radius, sin(calculate_angle(i, clones)) * radius, 0]) {
+        translate([cos(calculate_angle(i, clones)) * r, sin(calculate_angle(i, clones)) * r, 0]) {
             rotate([0, 0, calculate_angle(i, clones)]) {
+                children();
+            }
+        }
+    }
+}
+
+//--------------------------------------
+//-- Duplicate child object(s) along a point array
+//-- INPUTS:
+//--   clones: Number of objects to be ditributed around the circle. Default: 1
+//--   points: Array of 2D or 3D coords to clone child on to
+//--------------------------------------
+module vertex_cloner(clones = 1, points = []) {
+    for (p = points) {  
+        for (i = [0 : 1 : clones]) {
+            translate(p) {
                 children();
             }
         }
@@ -49,7 +97,7 @@ module stack_light() {
     stack_radius = 4.9/2;
     base_height = .95;
     fillet_radius = .2;
-    base_thickness = .2;
+    wall_thickness = .2;
     middle_wirehole_radius = 1.3/2;
     wire_cutaway_height = .5;
     
@@ -68,29 +116,136 @@ module stack_light() {
                     // main base shape
                     rotate_extrude() { polygon(stack_light_base()); }
                     // inner base to cut out
-                    cylinder(h = base_height - fillet_radius, r = base_radius - base_thickness);
+                    cylinder(h = base_height - fillet_radius, r = base_radius - wall_thickness);
                 }
-                radial_cloner(clones = 3, radius = base_radius - .8) {
+                radial_cloner(clones = 3, r = base_radius - .8) {
                     // outer mount screw hole walls
-                    translate([0, 0, .1]) { cylinder(r = 1/2 + base_thickness, h = base_height - .1 - fillet_radius); }
+                    translate([0, 0, .1]) { cylinder(r = 1/2 + wall_thickness, h = base_height - .1 - fillet_radius); }
                     // inner mount hole thickness
-                    rotate([0, 0, 90]) { pill(r = .4/2 + base_thickness, h = .6, depth = base_height); }
+                    rotate([0, 0, 90]) { pill(r = .4/2 + wall_thickness, h = .6, depth = base_height); }
                 }
             }
             // middle hole for wires
             cylinder(h = base_height + fillet_radius, r = middle_wirehole_radius);
-            radial_cloner(clones = 3, radius = base_radius - .8) {
+            radial_cloner(clones = 3, r = base_radius - .8) {
                 // inset mount screw hole 
-                translate([0, 0, .1 + base_thickness]) { cylinder(r = 1/2, h = base_height - base_thickness); }
+                translate([0, 0, .1 + wall_thickness]) { cylinder(r = 1/2, h = base_height - wall_thickness); }
                 // mount screw hole
                 translate([0, 0, -.4]) { rotate([0, 0, 90]) { pill(r = .4/2, h = .6, depth = base_height * 2); } }
             }
             // side cutout for wires
-            translate([base_radius * -1, 0, (wire_cutaway_height - fillet_radius)/2]) { rotate([90, 0, 90]) { rounded_rect(w = 1.2, r = fillet_radius, h = wire_cutaway_height + fillet_radius, depth = base_thickness * 4); } }
+            translate([base_radius * -1, 0, (wire_cutaway_height - fillet_radius)/2]) { rotate([90, 0, 90]) { rounded_rect(w = 1.2, r = fillet_radius, h = wire_cutaway_height + fillet_radius, depth = wall_thickness * 4); } }
         }
     }
         
     base();
 }
 
-stack_light();
+module enclosure() {
+    stacklight_base_radius = 8/2;
+    fillet_radius = .2;
+    wall_thickness = .2;
+    pcb_box_size = [5.35, 10.16, 3.5];
+    pcb_thickness = .16; // thickness of circut board itself
+    box_inner_gap = .3;
+
+    power_cutout_size = [.9, 1.5, 1.1];
+    standoff_height = .5;
+    standoff_outer_radius = .3; // no bigger than .3 because soilder points are in the way
+    standoff_inner_radius = .1; // hole for screw
+    pcb_hole_radius = .4/2;
+    inner_box_size = [
+        pcb_box_size[0] + box_inner_gap * 2,
+        pcb_box_size[1] + box_inner_gap * 2,
+        pcb_box_size[2] + standoff_height + box_inner_gap * 2
+    ];
+    standoff_coords = [ // these coords use the top left as the origin
+        // top left (near power)
+        [.05 + pcb_hole_radius, -1.2 - pcb_hole_radius],
+        // top right (near usb)
+        [pcb_box_size[0] - .08 - pcb_hole_radius, -1.33 - pcb_hole_radius],
+        // bottom left
+        [.05 + pcb_hole_radius, (pcb_box_size[1] * -1) + .3 + pcb_hole_radius],
+        // bottom right
+        [pcb_box_size[0] - .07 - pcb_hole_radius, (pcb_box_size[1] * -1) + .94 + pcb_hole_radius]
+    ];
+    
+    module standoff() {
+        difference() {
+            cylinder(h = standoff_height, r = standoff_outer_radius);
+            // inner hole for screw
+            translate([0, 0, wall_thickness]) { cylinder(h = standoff_height, r = standoff_inner_radius); }
+        }
+    }
+    
+    module arduino() {
+        usb_cutout_size = [1.27, 1.6, 1.1];
+        usb_position = [ // these coords use the top left as the origin
+            usb_cutout_size[0]/-2 - pcb_box_size[0]/-2 - .92, 
+            usb_cutout_size[1]/-2 + pcb_box_size[1]/2 + .65, 
+            usb_cutout_size[2]/2
+        ];
+        
+        // literal arduino board, useful to align standoffs and bounding box
+        #translate([pcb_box_size[0]/-2, pcb_box_size[1]/2, pcb_thickness]) {
+            rotate([0, 0, 270]) { 
+                scale([.1, .1, .1]) { 
+                    // thank you: https://grabcad.com/library/arduino-mega-2560
+                    import("./Arduino_MEGA2560.stl"); 
+                } 
+            }
+        }
+        // bounding box of arduino and relay board
+        translate([0, 0, pcb_box_size[2]/2]) { cube(pcb_box_size, center = true); }
+        // usb bounding box
+        translate([0, 0, pcb_thickness]) { translate(usb_position) { cube(usb_cutout_size, center = true); } }
+    }
+                
+    module box() {
+        outer_size = [
+            inner_box_size[0] + wall_thickness * 2,
+            inner_box_size[1] + wall_thickness * 2,
+            inner_box_size[2] + wall_thickness * 2
+        ];
+        pcb_offset = [0, 0, standoff_height + wall_thickness];
+        
+        difference() {
+            // main outer housing
+            rounded_rect(r = fillet_radius, w = outer_size[0], h = outer_size[1], depth = outer_size[2]);
+            // inner cutout
+            translate([0, 0, (inner_box_size[2]/2) + wall_thickness]) { 
+                cube([inner_box_size[0], inner_box_size[1], inner_box_size[2]], center = true); 
+            }
+            // bottom branding
+            rotate([0, 0, 270]) {
+                linear_extrude(.1) {
+                    mirror([1, 0, 0]) {
+                        // if you need the Hack font you can find it here: https://github.com/source-foundry/Hack
+                        // you can install via homebrew: brew tap caskroom/fonts; brew cask install font-hack
+                        translate([0, .5, 0]) { text("ARDUINO STACK LIGHT", size = .5, font = "Hack:style=bold", halign = "center"); }
+                        translate([0, -.5, 0]) { text("CONTROLLER Rev. 1", size = .5, font = "Hack:style=bold", halign = "center"); }
+                    }
+                }
+            }
+            translate(pcb_offset) { arduino(); }
+        }
+                
+        // standoffs to screw arduino down into
+        translate([pcb_box_size[0]/-2, pcb_box_size[1]/2]) {
+            vertex_cloner(points = standoff_coords) {
+                // we move these up so they sit on top of the floor and not clip through
+                translate([0, 0, wall_thickness]) { standoff(); }
+            }
+        }
+    }
+    
+    // cut off top to see bottom half
+    intersection() {
+        box();
+        translate([15/-2, 15/-2, 0]) { cube([15, 15, 1.5]); }
+    }
+}
+
+
+*translate([0,0, 10]) { stack_light(); }
+enclosure();

@@ -55,6 +55,31 @@ It's much easier to use VS Code or another text editor/IDE instead of the very b
 1. Add the [Arduino extension](https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.vscode-arduino) to VSCode (`vsciot-vscode.vscode-arduino`)
 1. Add the [EditorConfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) to VS Code (`EditorConfig.EditorConfig`)
 
+### Setup Protobuf
+
+**This is only needed if you are looking to re-compile the Protobuf messages**. This repo includes the current header files representing the current Protobuf messages.
+
+1. Install Python `brew install python`
+1. Install Protobuf `brew install protobuf`
+    - If you see a message about not being able to import the module run the suggested command: `echo 'import site; site.addsitedir("/usr/local/lib/python2.7/site-packages")' >> ~/Library/Python/2.7/lib/python/site-packages/homebrew.pth`
+1. Install the NanoPB library
+    1. Download [the NanoPB repo](https://github.com/nanopb/nanopb) as a .zip file
+    1. Extract the .zip file contents to `~/Documents/Arduino/libraries/nanopb-master`
+        - _Alternatively you can do this within Arudino IDE via the Sketch > Include Library > Add .ZIP Library... menu item_
+    1. Run `make` in the `generator/proto` directory
+1. Install the NanoPB Arduino bridge library
+    1. Download [the NanoPB-Arduino repo](https://github.com/eric-wieser/nanopb-arduino) as a .zip file
+    1. Extract the .zip file contents to `~/Documents/Arduino/libraries/nanopb-arduino-master`
+        - _Alternatively you can do this within Arudino IDE via the Sketch > Include Library > Add .ZIP Library... menu item_
+    1. Within the `nanopb-arduino-master` directory, move the contents of the `src` folder up a level
+
+### Compiling Protobuf Messages
+
+1. Make changes to the `commands.proto` file as needed
+1. Navigate to the `arduino-controller/proto` directory
+1. Run `./compile_pb.sh` to output header files
+    - NOTE: Recompiling the entire Arduino project will be needed after to utilize the changes made
+
 ## Roadmap
 
 - [x] Arudino to interface Relay shield to serial communications

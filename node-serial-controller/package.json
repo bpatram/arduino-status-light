@@ -1,0 +1,24 @@
+{
+  "name": "node-serial-controller",
+  "version": "0.1.0",
+  "description": "Wrapper library to communicate to the companion Arduino project that controls a stack light",
+  "main": "dist/index",
+  "types": "dist/index",
+  "author": "Brandon Patram <brandon@slewsystems.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "npm run build:live",
+    "build:live": "tsc -w",
+    "build:proto": "pbjs -t static-module -w commonjs -o src/commands.js --es6 ../proto/commands.proto && pbts -o src/commands.d.ts src/commands.js"
+  },
+  "devDependencies": {
+    "@types/node": "^8.5.1",
+    "ts-node": "^4.0.2",
+    "typescript": "^2.6.2"
+  },
+  "dependencies": {
+    "@types/serialport": "^6.0.0",
+    "protobufjs": "^6.8.3",
+    "serialport": "^6.0.4"
+  }
+}

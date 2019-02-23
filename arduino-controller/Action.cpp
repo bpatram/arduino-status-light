@@ -5,101 +5,88 @@ Action::Action(Relay pin) {
   this->target = pin;
 }
 
-void Action::relayOff(Relay pin) {
-  digitalWrite(pin, LOW);
+void Action::relayOff(Relay relay) {
+  digitalWrite(getRelayPin(relay), LOW);
 }
 
-void Action::relayOn(Relay pin) {
-  digitalWrite(pin, HIGH);
+void Action::relayOn(Relay relay) {
+  digitalWrite(getRelayPin(relay), HIGH);
 }
 
-void Action::relayInvert(Relay pin) {
-  if (getRelayState(pin)) {
-    relayOff(pin);
+void Action::relayInvert(Relay relay) {
+  if (getRelayState(relay) == StatusResponse_State::StatusResponse_State_ON) {
+    relayOff(relay);
   } else {
-    relayOn(pin);
+    relayOn(relay);
   }
 }
 
-bool Action::getRelayState(Relay pin) {
-  return digitalRead(pin) == HIGH;
+StatusResponse_State Action::getRelayState(Relay relay) {
+  if (digitalRead(getRelayPin(relay)) == HIGH) {
+    return StatusResponse_State::StatusResponse_State_ON;
+  }
+  return StatusResponse_State::StatusResponse_State_OFF;
 }
 
-int Action::getRelayIndex(Relay pin) {
-  switch (pin) {
-    case Relay::ONE:
-      return 1;
-    case Relay::TWO:
-      return 2;
-    case Relay::THREE:
-      return 3;
-    case Relay::FOUR:
+int Action::getRelayPin(Relay relay) {
+  switch (relay) {
+    case Relay::Relay_ONE:
+      return 7;
+    case Relay::Relay_TWO:
+      return 6;
+    case Relay::Relay_THREE:
+      return 5;
+    case Relay::Relay_FOUR:
       return 4;
   }
-  return -1;
+  return 0;
 }
 
 void OnAction::run() {
-  if (this->target == Relay::ALL) {
-    Action::relayOn(Relay::ONE);
-    Action::relayOn(Relay::TWO);
-    Action::relayOn(Relay::THREE);
-    Action::relayOn(Relay::FOUR);
+  if (this->target == Relay::Relay_ALL) {
+    Action::relayOn(Relay::Relay_ONE);
+    Action::relayOn(Relay::Relay_TWO);
+    Action::relayOn(Relay::Relay_THREE);
+    Action::relayOn(Relay::Relay_FOUR);
   } else {
     Action::relayOn(this->target);
   }
 }
 
 void OffAction::run() {
-  if (this->target == Relay::ALL) {
-    Action::relayOff(Relay::ONE);
-    Action::relayOff(Relay::TWO);
-    Action::relayOff(Relay::THREE);
-    Action::relayOff(Relay::FOUR);
+  if (this->target == Relay::Relay_ALL) {
+    Action::relayOff(Relay::Relay_ONE);
+    Action::relayOff(Relay::Relay_TWO);
+    Action::relayOff(Relay::Relay_THREE);
+    Action::relayOff(Relay::Relay_FOUR);
   } else {
     Action::relayOff(this->target);
   }
 }
 
 void InvertAction::run() {
-  if (this->target == Relay::ALL) {
-    Action::relayInvert(Relay::ONE);
-    Action::relayInvert(Relay::TWO);
-    Action::relayInvert(Relay::THREE);
-    Action::relayInvert(Relay::FOUR);
+  if (this->target == Relay::Relay_ALL) {
+    Action::relayInvert(Relay::Relay_ONE);
+    Action::relayInvert(Relay::Relay_TWO);
+    Action::relayInvert(Relay::Relay_THREE);
+    Action::relayInvert(Relay::Relay_FOUR);
   } else {
     Action::relayInvert(this->target);
   }
 }
 
-void StatusAction::printStatus(Relay pin) {
-  // TODO: use Serial.printf to clean up some of this formatting
-  Serial.println(String(Action::getRelayIndex(pin)) + "\t" + (Action::getRelayState(pin) ? "ON" : "OFF"));
-}
-
 void StatusAction::run() {
-  if (this->target == Relay::ALL) {
-    printStatus(Relay::ONE);
-    printStatus(Relay::TWO);
-    printStatus(Relay::THREE);
-    printStatus(Relay::FOUR);
-  } else {
-    printStatus(this->target);
-  }
-}
+  StatusResponse_Status relayOne = { Relay::Relay_ONE, Action::getRelayState(Relay::Relay_ONE) };
+  StatusResponse_Status relayTwo = { Relay::Relay_TWO, Action::getRelayState(Relay::Relay_TWO) };
+  StatusResponse_Status relayThree = { Relay::Relay_THREE, Action::getRelayState(Relay::Relay_THREE) };
+  StatusResponse_Status relayFour = { Relay::Relay_FOUR, Action::getRelayState(Relay::Relay_FOUR) };
+  // StatusResponse_Status statuses[4] = { relayOne, relayTwo, relayThree, relayFour };
 
-void HelpAction::run() {
-  Serial.println("Here is a list of all possible commands:");
-  Serial.println("\t ?                                        This help screen");
-  Serial.println("\t !                                        Relay status (on or off)");
-  Serial.println("\t +                                        Turn all relays on");
-  Serial.println("\t -                                        Turn all relays off");
-  Serial.println("\t /                                        Toggle all relays on or off");
-  Serial.println("\t + relay                                  Turn a specific relay on");
-  Serial.println("\t - relay                                  Turn a specific relay off");
-  Serial.println("\t / relay                                  Toggle a specific relay on or off");
-  Serial.println("\t : relay times onTime offTime             Flash all relays at once");
-  Serial.println("\t ~ times onTime offTime pauseTime         Flash each relay in order");
+  StatusResponse message = { relayOne, relayTwo, relayThree, relayFour };
+
+  if (!pb_encode(this->stream, StatusResponse_fields, &message)) {
+    Serial.println(PB_GET_ERROR(this->stream));
+  }
 }
 
 void WaitAction::run() {
